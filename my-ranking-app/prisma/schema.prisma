@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  engine   = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ranking {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  maxScore    Int       @default(5)
+  createdAt   DateTime  @default(now())
+  Axis        Axis[]
+  contents    Content[]
+}
+
+model Content {
+  id          String   @id @default(cuid())
+  rankingId   String
+  title       String
+  description String?
+  image       String?
+  comment     String?
+  createdAt   DateTime @default(now())
+  ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  Rating      Rating[]
+}
+
+model Axis {
+  id        String   @id
+  rankingId String
+  name      String
+  order     Int
+  Ranking   Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  Rating    Rating[]
+
+  @@unique([rankingId, order])
+}
+
+model Rating {
+  id        String  @id
+  contentId String
+  axisId    String
+  score     Int     @default(0)
+  Axis      Axis    @relation(fields: [axisId], references: [id], onDelete: Cascade)
+  Content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, axisId])
+}
